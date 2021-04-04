@@ -32,11 +32,13 @@
 ######################################################################
 
 .eqv	BASE_ADDRESS	0x10008000
+.eqv 	END		0x10009FFC
 .eqv	KBD_BASE	0xffff0000
 .eqv	WIDTH		64 # in "units"
 .eqv	HEIGHT		32 # in "units"
 .eqv	ROW_SHIFT	8 # 64 units * 4 bytes per pixel = 256 = 2^8
 .eqv	REFRESH_RATE	40
+.eqv 	BLACK		0x00000000
 
 .data
 W:	.asciiz		"w"
@@ -49,9 +51,11 @@ exit:	.asciiz		"Exiting Game!"
 
 SETUP: 	li $t0, BASE_ADDRESS	# $t0 stores the base address for display
 	li $t9, KBD_BASE	# $t9 stores the keyboard base address
+	addi $s0, $s0, 0	# set $s0 to counter for loops
 	
 MAIN:	lw $t8, 0($t9)
 	beq $t8, 1, KEY
+	li $s2, BASE_ADDRESS	# $s1 stores the base address for display for reset purposes
 	j SHIP
 	
 KEY:	lw $t2, 4($t9) # this assumes $t9 is set to 0xfff0000from before
@@ -69,7 +73,7 @@ W_PRESS:
 	syscall
 	
 	addi $t0, $t0, -256
-	j SHIP
+	j RESET
 	
 A_PRESS:
 	# Print A String
@@ -78,7 +82,7 @@ A_PRESS:
 	syscall
 	
 	addi $t0, $t0, -4
-	j SHIP
+	j RESET
 	
 S_PRESS:
 	# Print S String
@@ -87,7 +91,7 @@ S_PRESS:
 	syscall
 	
 	addi $t0, $t0, 256
-	j SHIP
+	j RESET
 	
 D_PRESS:
 	# Print D String
@@ -96,8 +100,15 @@ D_PRESS:
 	syscall
 	
 	addi $t0, $t0, 4
-	j SHIP
+	j RESET
 	
+RESET:	li $s1, END		# Load end location
+	beq $s2, $s1, SHIP	# Check if reset has reached end, jump to ship if it has
+	li $t1, BLACK		# Load in black colour
+	sw $t1, 0($s2)		# Set pixel to black
+	addi $s2, $s2, 4	# Add 4 to pixel count
+	j RESET			# Loop to reset
+
 SHIP:	li $t1, 0xede7f6	# $t1 stores the gray
 	li $t2, 0x837cc2	# $t2 stores the purple
 	li $t3, 0xff5252	# $t3 stores the red

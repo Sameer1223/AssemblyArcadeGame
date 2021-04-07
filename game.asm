@@ -94,6 +94,8 @@ SETUP: 	li $t0, BASE_ADDRESS	# $t0 stores the base address for display
 	li $s5, OBSTACLE_START
 	add $s5, $s5, $a0
 	
+	add $s6, $s6, $zero
+	
 	j SHIP
 	
 MAIN:	lw $t8, 0($t9)
@@ -101,7 +103,6 @@ MAIN:	lw $t8, 0($t9)
 	li $s2, BASE_ADDRESS	# $s1 stores the base address for display for reset purposes
 	
 	j CALL_OBSTACLE
-	#j RESET
 	
 KEY:	lw $t2, 4($t9) # this assumes $t9 is set to 0xfff0000from before
 	beq $t2, 0x77, W_PRESS # ASCII code of 'w' is 0x77
@@ -120,7 +121,7 @@ W_PRESS:
 	bne $t3, 0, W_MOVE
 	j END_LOOP
 	
-W_MOVE:	#addi $t0, $t0, -256
+W_MOVE:	
 	addi $t6, $zero, -256
 	j RESET_SHIP
 	
@@ -137,7 +138,7 @@ A_PRESS:
 	bne $t3, 0, A_MOVE
 	j END_LOOP
 	
-A_MOVE:	#addi $t0, $t0, -4
+A_MOVE:	
 	addi $t6, $zero, -4
 	j RESET_SHIP
 	
@@ -150,7 +151,7 @@ S_PRESS:
 	bne $t3, 28, S_MOVE
 	j END_LOOP
 	
-S_MOVE:	#addi $t0, $t0, 256
+S_MOVE:	
 	addi $t6, $zero, 256
 	j RESET_SHIP
 	
@@ -167,16 +168,9 @@ D_PRESS:
 	bne $t3, 59, D_MOVE
 	j END_LOOP
 	
-D_MOVE:	#addi $t0, $t0, 4
+D_MOVE:	
 	addi $t6, $zero, 4
 	j RESET_SHIP
-	
-#RESET:	li $s1, END		# Load end location
-#	beq $s2, $s1, SHIP	# Check if reset has reached end, jump to ship if it has
-#	li $t1, BLACK		# Load in black colour
-#	sw $t1, 0($s2)		# Set pixel to black
-#	addi $s2, $s2, 4	# Add 4 to pixel count
-#	j RESET			# Loop to reset
 
 RESET_SHIP:	
 	li $t1, BLACK
@@ -223,21 +217,27 @@ SHIP:	li $t1, 0xede7f6	# $t1 stores the gray
 	sw $t1, 780($t0)
 
 CALL_OBSTACLE:
+	# Move obstacle 1
 	la $t8, ($s3)
 	jal OBSTACLE_COL
 	la $s3, ($t8)
-	#sub $s3, $s3, 4
+	blt $s6, 15, STAGGER
 	
+	# Move obstacle 2
 	la $t8, ($s4)
 	jal OBSTACLE_COL
 	la $s4, ($t8)
-	#sub $s4, $s4, 4
+	blt $s6, 30, STAGGER
 	
+	# Move obstacle 3
 	la $t8, ($s5)
 	jal OBSTACLE_COL
 	la $s5, ($t8)
-	#sub $s5, $s5, 4
 	
+	j END_LOOP
+	
+STAGGER: 
+	addi $s6, $s6, 1
 	j END_LOOP
 #=========================
 # OBSTACLE FUNCTION

@@ -100,7 +100,7 @@ MAIN:	lw $t8, 0($t9)
 	beq $t8, 1, KEY
 	li $s2, BASE_ADDRESS	# $s1 stores the base address for display for reset purposes
 	
-	j SHIP
+	j CALL_OBSTACLE
 	#j RESET
 	
 KEY:	lw $t2, 4($t9) # this assumes $t9 is set to 0xfff0000from before
@@ -222,12 +222,29 @@ SHIP:	li $t1, 0xede7f6	# $t1 stores the gray
 	sw $t1, 776($t0)		 
 	sw $t1, 780($t0)
 
+CALL_OBSTACLE:
+	la $t8, ($s3)
+	jal OBSTACLE_COL
+	la $s3, ($t8)
+	#sub $s3, $s3, 4
+	
+	la $t8, ($s4)
+	jal OBSTACLE_COL
+	la $s4, ($t8)
+	#sub $s4, $s4, 4
+	
+	la $t8, ($s5)
+	jal OBSTACLE_COL
+	la $s5, ($t8)
+	#sub $s5, $s5, 4
+	
+	j END_LOOP
 #=========================
-# OBSTACLE 1
+# OBSTACLE FUNCTION
 #=========================
 OBSTACLE_COL:
 	# Calculate obstacle column
-	sub $t3, $s3, $s2	# Pixel - Base Address = pixel location
+	sub $t3, $t8, $s2	# Pixel - Base Address = pixel location
 	div $t3, $t3, 4		# pixel location / 4
 	div $t4, $t3, WIDTH	# pixel location / width 
 	addi $t5, $zero, WIDTH	# set $t5 to width for use of multiplication
@@ -237,23 +254,23 @@ OBSTACLE_COL:
 
 RESET_OBSTACLE:
 	li $t1, BLACK
-	sw $t1, 4($s3)
-	sw $t1, 8($s3)
+	sw $t1, 4($t8)
+	sw $t1, 8($t8)
 	
-	sw $t1, 256($s3)
-	sw $t1, 260($s3)
-	sw $t1, 264($s3)
-	sw $t1, 268($s3)
+	sw $t1, 256($t8)
+	sw $t1, 260($t8)
+	sw $t1, 264($t8)
+	sw $t1, 268($t8)
 	
-	sw $t1, 512($s3)
-	sw $t1, 516($s3)
-	sw $t1, 520($s3)
-	sw $t1, 524($s3)
+	sw $t1, 512($t8)
+	sw $t1, 516($t8)
+	sw $t1, 520($t8)
+	sw $t1, 524($t8)
 	
-	sw $t1, 772($s3)
-	sw $t1, 776($s3)
+	sw $t1, 772($t8)
+	sw $t1, 776($t8)
 	
-	sub $s3, $s3, 4
+	sub $t8, $t8, 4
 	
 	beqz $t3, SPAWN_OBSTACLE
 	j OBSTACLE
@@ -267,164 +284,30 @@ SPAWN_OBSTACLE:
 	addi $t2, $zero, 256
 	mult $a0, $t2
 	mflo $a0
-	li $s3, OBSTACLE_START
-	add $s3, $s3, $a0
+	li $t8, OBSTACLE_START
+	add $t8, $t8, $a0
 
 OBSTACLE:
 	li $t1, 0xcaa368	# $t1 stores the gold
 	li $t2, 0x6e5f29	# $t2 stores the brown
 
-	sw $t2, 4($s3)
-	sw $t2, 8($s3)
+	sw $t2, 4($t8)
+	sw $t2, 8($t8)
 	
-	sw $t2, 256($s3)
-	sw $t1, 260($s3)
-	sw $t1, 264($s3)
-	sw $t2, 268($s3)
+	sw $t2, 256($t8)
+	sw $t1, 260($t8)
+	sw $t1, 264($t8)
+	sw $t2, 268($t8)
 	
-	sw $t2, 512($s3)
-	sw $t1, 516($s3)
-	sw $t1, 520($s3)
-	sw $t2, 524($s3)
+	sw $t2, 512($t8)
+	sw $t1, 516($t8)
+	sw $t1, 520($t8)
+	sw $t2, 524($t8)
 	
-	sw $t2, 772($s3)
-	sw $t2, 776($s3)
-
-#=========================
-# OBSTACLE 2
-#=========================
-OBSTACLE_COL2:
-	# Calculate obstacle column
-	sub $t3, $s4, $s2	# Pixel - Base Address = pixel location
-	div $t3, $t3, 4		# pixel location / 4
-	div $t4, $t3, WIDTH	# pixel location / width 
-	addi $t5, $zero, WIDTH	# set $t5 to width for use of multiplication
-	mult $t4, $t5		# (pixel location / width) * width
-	mflo $t4		# access calculation
-	sub $t3, $t3, $t4	# Col = pixel location - calculation
-
-RESET_OBSTACLE2:
-	li $t1, BLACK
-	sw $t1, 4($s4)
-	sw $t1, 8($s4)
+	sw $t2, 772($t8)
+	sw $t2, 776($t8)
 	
-	sw $t1, 256($s4)
-	sw $t1, 260($s4)
-	sw $t1, 264($s4)
-	sw $t1, 268($s4)
-	
-	sw $t1, 512($s4)
-	sw $t1, 516($s4)
-	sw $t1, 520($s4)
-	sw $t1, 524($s4)
-	
-	sw $t1, 772($s4)
-	sw $t1, 776($s4)
-	
-	sub $s4, $s4, 4
-	
-	beqz $t3, SPAWN_OBSTACLE2
-	j OBSTACLE2
-
-SPAWN_OBSTACLE2:	
-	li $v0, 42
-	li $a0, 0
-	li $a1, 28
-	syscall
-	
-	addi $t2, $zero, 256
-	mult $a0, $t2
-	mflo $a0
-	li $s4, OBSTACLE_START
-	add $s4, $s4, $a0
-
-OBSTACLE2:
-	li $t1, 0xcaa368	# $t1 stores the gold
-	li $t2, 0x6e5f29	# $t2 stores the brown
-
-	sw $t2, 4($s4)
-	sw $t2, 8($s4)
-	
-	sw $t2, 256($s4)
-	sw $t1, 260($s4)
-	sw $t1, 264($s4)
-	sw $t2, 268($s4)
-	
-	sw $t2, 512($s4)
-	sw $t1, 516($s4)
-	sw $t1, 520($s4)
-	sw $t2, 524($s4)
-	
-	sw $t2, 772($s4)
-	sw $t2, 776($s4)
-
-#=========================
-# OBSTACLE 3
-#=========================
-OBSTACLE_COL3:
-	# Calculate obstacle column
-	sub $t3, $s5, $s2	# Pixel - Base Address = pixel location
-	div $t3, $t3, 4		# pixel location / 4
-	div $t4, $t3, WIDTH	# pixel location / width 
-	addi $t5, $zero, WIDTH	# set $t5 to width for use of multiplication
-	mult $t4, $t5		# (pixel location / width) * width
-	mflo $t4		# access calculation
-	sub $t3, $t3, $t4	# Col = pixel location - calculation
-
-RESET_OBSTACLE3:
-	li $t1, BLACK
-	sw $t1, 4($s5)
-	sw $t1, 8($s5)
-	
-	sw $t1, 256($s5)
-	sw $t1, 260($s5)
-	sw $t1, 264($s5)
-	sw $t1, 268($s5)
-	
-	sw $t1, 512($s5)
-	sw $t1, 516($s5)
-	sw $t1, 520($s5)
-	sw $t1, 524($s5)
-	
-	sw $t1, 772($s5)
-	sw $t1, 776($s5)
-	
-	sub $s5, $s5, 4
-	
-	beqz $t3, SPAWN_OBSTACLE3
-	j OBSTACLE3
-
-SPAWN_OBSTACLE3:	
-	li $v0, 42
-	li $a0, 0
-	li $a1, 28
-	syscall
-	
-	addi $t2, $zero, 256
-	mult $a0, $t2
-	mflo $a0
-	li $s5, OBSTACLE_START
-	add $s5, $s5, $a0
-
-OBSTACLE3:
-	li $t1, 0xcaa368	# $t1 stores the gold
-	li $t2, 0x6e5f29	# $t2 stores the brown
-
-	sw $t2, 4($s5)
-	sw $t2, 8($s5)
-	
-	sw $t2, 256($s5)
-	sw $t1, 260($s5)
-	sw $t1, 264($s5)
-	sw $t2, 268($s5)
-	
-	sw $t2, 512($s5)
-	sw $t1, 516($s5)
-	sw $t1, 520($s5)
-	sw $t2, 524($s5)
-	
-	sw $t2, 772($s5)
-	sw $t2, 776($s5)
+	jr $ra
 
 #	la $s6, SHIP_ARRAY
 #	la $s7, OBSTACLE_ARRAY

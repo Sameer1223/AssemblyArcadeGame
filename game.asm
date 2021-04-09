@@ -582,12 +582,13 @@ RESTART:
 P_KEY:	lw $t2, 4($t9) # this assumes $t9 is set to 0xfff0000 from before
 	beq $t2, 0x70, P_PRESS # ASCII code of 'P' is 0X70
 	beq $t2, 0x78, EXIT
+	j END_RESTART
 
 P_PRESS:
 	li $v0, 4
 	la $a0, restart
 	syscall
-	j SETUP
+	j RESET
 
 END_RESTART:
 	# SLEEP 20 MILLISECOND
@@ -599,6 +600,19 @@ END_RESTART:
 #=========================
 # END LOOP AND RESET
 #=========================
+RESET: 	li $t1, BASE_ADDRESS
+	li $t2, END
+	li $t3, 0x000000
+	li $s0, 0
+	li $s6, 0
+	li $s7, 0
+	
+RESET_BACKGROUND:
+	sw $t3, 0($t1)
+	addi $t1, $t1, 4
+	bne $t1, $t2, RESET_BACKGROUND
+	j SETUP
+
 END_LOOP:
 	# SLEEP 20 MILLISECOND
 	li $v0, 32

@@ -346,6 +346,25 @@ SHOW_COLLISION:
 	bgt $s0, 0, WAIT_COL
 	addi $s7, $s7, 1	# Add weighted collision
 	
+	li $t1, 0xff0000
+	sw $t1, 8($t0)		 
+	sw $t1, 12($t0)
+	
+	sw $t1, 256($t0)
+	sw $t1, 260($t0)
+	sw $t1, 264($t0)
+	sw $t1, 268($t0)
+	sw $t1, 272($t0)
+	
+	sw $t1, 512($t0)
+	sw $t1, 516($t0)
+	sw $t1, 520($t0)
+	sw $t1, 524($t0)
+	sw $t1, 528($t0)
+	
+	sw $t1, 776($t0)		 
+	sw $t1, 780($t0)
+	
 	addi $s0, $s0, 1	# Add delay for collision
 	j END_COL
 

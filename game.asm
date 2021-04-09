@@ -51,6 +51,7 @@ D:	.asciiz		"d"
 SHIP_ARRAY:    		.word    8, 12, 256, 260, 272, 512, 516, 528, 776, 780
 OBSTACLE_ARRAY:    	.word    4, 8, 256, 268, 512, 524, 772, 776
 exit:	.asciiz		"Exiting Game!"
+collision:	.asciiz	"Collision!"
 .text
 .globl SETUP
 
@@ -94,7 +95,9 @@ SETUP: 	li $t0, BASE_ADDRESS	# $t0 stores the base address for display
 	li $s5, OBSTACLE_START
 	add $s5, $s5, $a0
 	
-	add $s6, $s6, $zero
+	# Counter variables
+	add $s6, $s6, $zero	# Update spawn time
+	add $s0, $s0, $zero	# Delay collision
 	
 	j SHIP
 	
@@ -102,7 +105,7 @@ MAIN:	lw $t8, 0($t9)
 	beq $t8, 1, KEY
 	li $s2, BASE_ADDRESS	# $s1 stores the base address for display for reset purposes
 	
-	j CALL_OBSTACLE
+	j SHIP
 	
 KEY:	lw $t2, 4($t9) # this assumes $t9 is set to 0xfff0000from before
 	beq $t2, 0x77, W_PRESS # ASCII code of 'w' is 0x77
@@ -233,12 +236,23 @@ CALL_OBSTACLE:
 	la $t8, ($s5)
 	jal OBSTACLE_COL
 	la $s5, ($t8)
+
+CALL_COLLISION:
+	# Load in necessary parameters
+	la $t4, SHIP_ARRAY
+	li $t6, 0
+	li $t7, SHIP_SIZE
+	li $t1, 0
+	li $t2, 0x6e5f29
 	
+	# Call Function
+	jal COLLISION_LOOP
 	j END_LOOP
-	
+
 STAGGER: 
 	addi $s6, $s6, 1
 	j END_LOOP
+
 #=========================
 # OBSTACLE FUNCTION
 #=========================
@@ -309,36 +323,46 @@ OBSTACLE:
 	
 	jr $ra
 
-#	la $s6, SHIP_ARRAY
-#	la $s7, OBSTACLE_ARRAY
-#	addi $t6, $t6, -4
-#	add $t7, $t7, $zero
+#=========================
+# COLLISION FUNCTION
+#=========================
+COLLISION_LOOP:
+	beq $t6, $t7, END_COL
+	add $t3, $t4, $t6	# addr(A) + i
+	#add $t3, $t3, $t0	# account for base address
+	lw $s1, 0($t3)		# $s1 = A[i]
+	lw $t3, ($t0)
+	add $t3, $s1, $t0
+	lw $t3, 0($t3)
+	
+	beq $t3, $t2, SHOW_COLLISION
+	addi $t6, $t6, 4
+	j COLLISION_LOOP
+	
+SHOW_COLLISION:
+	bgt $s0, 0, WAIT_COL
 
-#COLLISION_LOOP:
-#	addi $t6, $t6, 4
-#	beq $t6, SHIP_SIZE, END_LOOP
-#	j COLLISION_INNER
+	li $v0, 4
+	la $a0, collision
+	syscall
+	
+	addi $s0, $s0, 1
+	j END_COL
 
-#COLLISION_INNER:
-#	beq $t7, OBSTACLE_SIZE, COLLISION_LOOP
-#	add $t1, $s6, $t6	# addr(A) + i
-#	add $t2, $s7, $t7	# arrd(B) + i
-#	
-#	lw $t3, 0($t1)		# $t3 = A[i]
-#	lw $t4, 0($t2)		# $t4 = B[i]
-#	
-#	add $t3, $t3, $t0	# account for base address
-#	add $t4, $t4, $s3	# account for base address
-#	
-#	beq $t3, $t4, SHOW_COLLISION
-#	
-#	addi $t7, $t7, 4
-#	j COLLISION_LOOP
-#
-#SHOW_COLLISION:
-#	li $t1, 0xff0000
-#	sw $t1, 0($t0)
-#	
+WAIT_COL:
+	addi $s0, $s0, 1
+	bgt $s0, 4, RESET_COL
+	j END_COL
+
+RESET_COL:
+	li $s0, 0
+
+END_COL:
+	jr $ra
+
+#=========================
+# END LOOP AND RESET
+#=========================
 END_LOOP:
 
 	# SLEEP 1 SECOND

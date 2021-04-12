@@ -18,14 +18,14 @@
 # (See the assignment handout for the list of additional features)
 # 1. Smooth Graphics
 # 2. Game Difficulty Increases Over Time (Asteroid Speed)
-# 3. Scoring
+# 3. Scoring with Display on Game Over screen
 #... (add more if necessary)
 #
 # Link to video demonstration for final submission:
-# - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
+# - https://youtu.be/nlvJFYFkBP0
 #
 # Are you OKwith us sharing the video with people outside course staff?
-# - yes / no/ yes, and please share this project githublink as well!
+# - yes, https://github.com/Sameer1223/AssemblyArcadeGame
 #
 # Any additional information that the TA needs to know:
 # - (write here, if any)

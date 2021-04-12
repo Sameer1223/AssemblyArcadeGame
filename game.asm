@@ -17,7 +17,7 @@
 # - Milestone 1/2/3/4 (choose the one the applies)## Which approved features have been implementedfor milestone 4?
 # (See the assignment handout for the list of additional features)
 # 1. Smooth Graphics
-# 2. (fill in the feature, if any)
+# 2. Game Difficulty Increases Over Time (Asteroid Speed)
 # 3. (fill in the feature, if any)
 #... (add more if necessary)
 #
@@ -645,11 +645,6 @@ CALC_REFRESH:
 	
 	div $t4, $t1, 50
 	sub $t3, $t3, $t4
-	
-	# Print Output Int
-	li $v0, 1
-	move $a0, $t3
-	syscall
 
 END_LOOP:
 	# SLEEP 20 MILLISECOND

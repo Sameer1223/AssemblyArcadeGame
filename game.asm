@@ -16,7 +16,7 @@
 # (See the assignment handout for descriptions of the milestones)
 # - Milestone 1/2/3/4 (choose the one the applies)## Which approved features have been implementedfor milestone 4?
 # (See the assignment handout for the list of additional features)
-# 1. (fill in the feature, if any)
+# 1. Smooth Graphics
 # 2. (fill in the feature, if any)
 # 3. (fill in the feature, if any)
 #... (add more if necessary)
@@ -38,7 +38,7 @@
 .eqv	WIDTH		64 # in "units"
 .eqv	HEIGHT		32 # in "units"
 .eqv	ROW_SHIFT	8 # 64 units * 4 bytes per pixel = 256 = 2^8
-.eqv	REFRESH_RATE	20
+.eqv	REFRESH_RATE	40
 .eqv 	BLACK		0x00000000
 .eqv	SHIP_SIZE	40
 .eqv	OBSTACLE_SIZE	32
@@ -116,7 +116,7 @@ KEY:	lw $t2, 4($t9) # this assumes $t9 is set to 0xfff0000 from before
 	beq $t2, 0x73, S_PRESS # ASCII code of 's' is 0x73
 	beq $t2, 0x64, D_PRESS # ASCII code of 'd' is 0x64
 	beq $t2, 0x78, EXIT
-	j END_LOOP
+	j CALC_REFRESH
 	
 W_PRESS:
 	# Calculate row
@@ -125,7 +125,7 @@ W_PRESS:
 	div $t3, $t3, 4		# Row = pixel location / width
 	
 	bne $t3, 0, W_MOVE
-	j END_LOOP
+	j CALC_REFRESH
 	
 W_MOVE:	
 	addi $t6, $zero, -256
@@ -142,7 +142,7 @@ A_PRESS:
 	sub $t3, $t3, $t4	# Col = pixel location - calculation
 	
 	bne $t3, 0, A_MOVE
-	j END_LOOP
+	j CALC_REFRESH
 	
 A_MOVE:	
 	addi $t6, $zero, -4
@@ -155,7 +155,7 @@ S_PRESS:
 	div $t3, $t3, 4		# Row = pixel location / width
 	
 	bne $t3, 28, S_MOVE
-	j END_LOOP
+	j CALC_REFRESH
 	
 S_MOVE:	
 	addi $t6, $zero, 256
@@ -172,7 +172,7 @@ D_PRESS:
 	sub $t3, $t3, $t4	# Col = pixel location - calculation
 
 	bne $t3, 59, D_MOVE
-	j END_LOOP
+	j CALC_REFRESH
 	
 D_MOVE:	
 	addi $t6, $zero, 4
@@ -239,6 +239,8 @@ CALL_OBSTACLE:
 	la $t8, ($s5)
 	jal OBSTACLE_COL
 	la $s5, ($t8)
+	
+	blt $s6, 1500, TIME_TRACK
 
 CALL_COLLISION:
 	# Load in necessary parameters
@@ -255,6 +257,10 @@ CALL_COLLISION:
 STAGGER: 
 	addi $s6, $s6, 1
 	j HEALTHBAR
+
+TIME_TRACK:
+	addi $s6, $s6, 1
+	j CALL_COLLISION
 
 #=========================
 # OBSTACLE FUNCTION
@@ -401,7 +407,7 @@ HEALTHBAR:
 	li $t1, 0xfa4454
 	jal RESET_BAR
 	
-	j END_LOOP
+	j CALC_REFRESH
 
 SHOWBAR:
 	# Show green colour for health remaining
@@ -632,10 +638,23 @@ RESET_BACKGROUND:
 	bne $t1, $t2, RESET_BACKGROUND
 	j SETUP
 
+CALC_REFRESH:
+	# Increase refresh rate periodically
+	li $t3, REFRESH_RATE
+	subi $t1, $s6, 30
+	
+	div $t4, $t1, 50
+	sub $t3, $t3, $t4
+	
+	# Print Output Int
+	li $v0, 1
+	move $a0, $t3
+	syscall
+
 END_LOOP:
 	# SLEEP 20 MILLISECOND
 	li $v0, 32
-	li $a0, REFRESH_RATE  # Wait REFRESH_RATE amount of seconds
+	la $a0, ($t3)  # Wait REFRESH_RATE amount of seconds
 	syscall
 	j MAIN
 

@@ -18,7 +18,7 @@
 # (See the assignment handout for the list of additional features)
 # 1. Smooth Graphics
 # 2. Game Difficulty Increases Over Time (Asteroid Speed)
-# 3. (fill in the feature, if any)
+# 3. Scoring
 #... (add more if necessary)
 #
 # Link to video demonstration for final submission:
@@ -39,6 +39,7 @@
 .eqv	HEIGHT		32 # in "units"
 .eqv	ROW_SHIFT	8 # 64 units * 4 bytes per pixel = 256 = 2^8
 .eqv	REFRESH_RATE	40
+.eqv	LOW_REFRESH	10
 .eqv 	BLACK		0x00000000
 .eqv	SHIP_SIZE	40
 .eqv	OBSTACLE_SIZE	32
@@ -46,10 +47,6 @@
 .eqv	HEALTH_SIZE	5
 
 .data
-W:	.asciiz		"w"
-A:	.asciiz		"a"
-S:	.asciiz		"s"
-D:	.asciiz		"d"
 SHIP_ARRAY:    		.word    8, 12, 256, 260, 272, 512, 516, 528, 776, 780
 OBSTACLE_ARRAY:    	.word    4, 8, 256, 268, 512, 524, 772, 776
 exit:	.asciiz		"Exiting Game!"
@@ -241,6 +238,7 @@ CALL_OBSTACLE:
 	la $s5, ($t8)
 	
 	blt $s6, 1500, TIME_TRACK
+	addi $s6, $s6, 1
 
 CALL_COLLISION:
 	# Load in necessary parameters
@@ -592,8 +590,247 @@ GAME_OVER_SCREEN:
 	
 	sw $t2, 7916($t1)
 	sw $t2, 7928($t1)
+
+DRAW_SCORE:
+	li $t1, 0x10009A04
+	li $t2, 0x1f61b8
+	
+	# Divide by 1000 to find thousanth digit
+	div $t3, $s6, 1000
+	jal CHECK_DIGIT
+	addi $t1, $t1, 16
+	li $t4, 1000
+	mult $t3, $t4
+	mflo $t4
+	sub $s6, $s6, $t4
+	
+	# Divide by 100 to find hundreth digit
+	div $t3, $s6, 100
+	jal CHECK_DIGIT
+	addi $t1, $t1, 16
+	li $t4, 100
+	mult $t3, $t4
+	mflo $t4
+	sub $s6, $s6, $t4
+	
+	# Divide by 10 to find tenth digit
+	div $t3, $s6, 10
+	jal CHECK_DIGIT
+	addi $t1, $t1, 16
+	li $t4, 10
+	mult $t3, $t4
+	mflo $t4
+	sub $s6, $s6, $t4
+	
+	# Divide by 1 to find ones digit
+	la $t3, ($s6)
+	jal CHECK_DIGIT
 	
 	j RESTART
+
+CHECK_DIGIT:
+	# Draw respective digit
+	beq $t3, 0, DRAW_ZERO
+	beq $t3, 1, DRAW_ONE
+	beq $t3, 2, DRAW_TWO
+	beq $t3, 3, DRAW_THREE
+	beq $t3, 4, DRAW_FOUR
+	beq $t3, 5, DRAW_FIVE
+	beq $t3, 6, DRAW_SIX
+	beq $t3, 7, DRAW_SEVEN
+	beq $t3, 8, DRAW_EIGHT
+	beq $t3, 9, DRAW_NINE
+
+DRAW_ZERO:
+	# Draws zero
+	sw $t2, 0($t1)
+	sw $t2, 4($t1)
+	sw $t2, 8($t1)
+	
+	sw $t2, 256($t1)
+	sw $t2, 264($t1)
+	
+	sw $t2, 512($t1)
+	sw $t2, 520($t1)
+	
+	sw $t2, 768($t1)
+	sw $t2, 776($t1)
+	
+	sw $t2, 1024($t1)
+	sw $t2, 1028($t1)
+	sw $t2, 1032($t1)
+	
+	jr $ra
+
+DRAW_ONE:
+	# Draws one
+	sw $t2, 8($t1)
+
+	sw $t2, 264($t1)
+	
+	sw $t2, 520($t1)
+	
+	sw $t2, 776($t1)
+	
+	sw $t2, 1032($t1)
+
+	jr $ra
+	
+DRAW_TWO:
+	# Draws two
+	sw $t2, 0($t1)
+	sw $t2, 4($t1)
+	sw $t2, 8($t1)
+	
+	sw $t2, 264($t1)
+	
+	sw $t2, 512($t1)
+	sw $t2, 516($t1)
+	sw $t2, 520($t1)
+	
+	sw $t2, 768($t1)
+	
+	sw $t2, 1024($t1)
+	sw $t2, 1028($t1)
+	sw $t2, 1032($t1)
+	
+	jr $ra
+	
+DRAW_THREE:
+	# Draws three
+	sw $t2, 0($t1)
+	sw $t2, 4($t1)
+	sw $t2, 8($t1)
+	
+	sw $t2, 264($t1)
+	
+	sw $t2, 512($t1)
+	sw $t2, 516($t1)
+	sw $t2, 520($t1)
+	
+	sw $t2, 776($t1)
+	
+	sw $t2, 1024($t1)
+	sw $t2, 1028($t1)
+	sw $t2, 1032($t1)
+	
+	jr $ra
+	
+DRAW_FOUR:
+	# Draws four
+	sw $t2, 0($t1)
+	sw $t2, 8($t1)
+	
+	sw $t2, 256($t1)
+	sw $t2, 264($t1)
+	
+	sw $t2, 512($t1)
+	sw $t2, 516($t1)
+	sw $t2, 520($t1)
+	
+	sw $t2, 776($t1)
+	
+	sw $t2, 1032($t1)
+	
+	jr $ra
+
+DRAW_FIVE:
+	# Draws five
+	sw $t2, 0($t1)
+	sw $t2, 4($t1)
+	sw $t2, 8($t1)
+	
+	sw $t2, 256($t1)
+	
+	sw $t2, 512($t1)
+	sw $t2, 516($t1)
+	sw $t2, 520($t1)
+	
+	sw $t2, 776($t1)
+	
+	sw $t2, 1024($t1)
+	sw $t2, 1028($t1)
+	sw $t2, 1032($t1)
+	
+	jr $ra
+	
+DRAW_SIX:
+	# Draws six
+	sw $t2, 0($t1)
+	sw $t2, 4($t1)
+	sw $t2, 8($t1)
+	
+	sw $t2, 256($t1)
+	
+	sw $t2, 512($t1)
+	sw $t2, 516($t1)
+	sw $t2, 520($t1)
+	
+	sw $t2, 768($t1)
+	sw $t2, 776($t1)
+	
+	sw $t2, 1024($t1)
+	sw $t2, 1028($t1)
+	sw $t2, 1032($t1)
+	
+	jr $ra
+
+DRAW_SEVEN:
+	# Draws seven
+	sw $t2, 0($t1)
+	sw $t2, 4($t1)
+	sw $t2, 8($t1)
+	
+	sw $t2, 264($t1)
+	
+	sw $t2, 520($t1)
+	
+	sw $t2, 776($t1)
+	
+	sw $t2, 1032($t1)
+	
+	jr $ra
+	
+DRAW_EIGHT:
+	# Draws eight
+	sw $t2, 0($t1)
+	sw $t2, 4($t1)
+	sw $t2, 8($t1)
+	
+	sw $t2, 256($t1)
+	sw $t2, 264($t1)
+	
+	sw $t2, 512($t1)
+	sw $t2, 516($t1)
+	sw $t2, 520($t1)
+	
+	sw $t2, 768($t1)
+	sw $t2, 776($t1)
+	
+	sw $t2, 1024($t1)
+	sw $t2, 1028($t1)
+	sw $t2, 1032($t1)
+	
+	jr $ra
+
+DRAW_NINE:
+	# Draws nine
+	sw $t2, 0($t1)
+	sw $t2, 4($t1)
+	sw $t2, 8($t1)
+	
+	sw $t2, 256($t1)
+	sw $t2, 264($t1)
+	
+	sw $t2, 512($t1)
+	sw $t2, 516($t1)
+	sw $t2, 520($t1)
+	
+	sw $t2, 776($t1)
+	
+	sw $t2, 1032($t1)
+	
+	jr $ra
 
 #=========================
 # RESTART GAME
@@ -641,10 +878,18 @@ RESET_BACKGROUND:
 CALC_REFRESH:
 	# Increase refresh rate periodically
 	li $t3, REFRESH_RATE
+	bgt $s6, 1500, LOWEST_REFRESH	# Limit how low the refresh rate can go
+	
 	subi $t1, $s6, 30
 	
 	div $t4, $t1, 50
 	sub $t3, $t3, $t4
+	
+	j END_LOOP
+
+LOWEST_REFRESH:
+	# If refresh has hit small enough number limit it
+	li $t3, LOW_REFRESH	
 
 END_LOOP:
 	# SLEEP 20 MILLISECOND
@@ -653,7 +898,8 @@ END_LOOP:
 	syscall
 	j MAIN
 
-EXIT:	# Print Exit String
+EXIT:	
+	# Print Exit String
 	li $v0, 4
 	la $a0, exit
 	syscall
